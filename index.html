@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>YOLO Person Detection</title>
+  </head>
+  <body>
+    <h1>Test YOLO Person Detection API</h1>
+    <input type="file" id="imageInput" accept="image/*" />
+    <button onclick="uploadImage()">Upload and Detect</button>
+    <p id="result"></p>
+
+    <script>
+      function uploadImage() {
+        const fileInput = document.getElementById("imageInput");
+        const resultElement = document.getElementById("result");
+
+        if (!fileInput.files || fileInput.files.length === 0) {
+          resultElement.textContent = "Please select an image.";
+          return;
+        }
+
+        const file = fileInput.files[0];
+        const reader = new FileReader();
+
+        reader.onload = function () {
+          // Convert the image file to base64
+          const base64Image = reader.result.split(",")[1];
+
+          // Send the base64 image to the Flask API
+          fetch("http://127.0.0.1:5000/detect", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ image: base64Image }),
+          })
+            .then((response) => response.json())
+            .then((data) => {
+              if (data.result === 1) {
+                resultElement.textContent = "Exactly one person detected.";
+              } else {
+                resultElement.textContent =
+                  "No person or more than one person detected.";
+              }
+            })
+            .catch((error) => {
+              resultElement.textContent = `Error: ${error.message}`;
+            });
+        };
+
+        reader.readAsDataURL(file);
+      }
+    </script>
+  </body>
+</html>
